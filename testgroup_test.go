@@ -19,7 +19,7 @@ import (
 
 func Test_Serial(t *testing.T) {
 	s := SerialTests{calls: []string{}}
-	testgroup.RunSerial(t, &s)
+	testgroup.RunSerially(t, &s)
 
 	callName := func(c string) string {
 		return fmt.Sprintf("%s/%s", t.Name(), c)
@@ -75,7 +75,7 @@ func (s *SerialTests) Skip(t *testgroup.T) { t.SkipNow() }
 
 func Test_Parallel(t *testing.T) {
 	s := ParallelTests{calls: []string{}}
-	testgroup.RunParallel(t, &s)
+	testgroup.RunInParallel(t, &s)
 
 	for i, call := range s.calls {
 		t.Logf("s.calls[%2d]: = %v", i, call)
@@ -144,7 +144,7 @@ func (s *ParallelTests) Skip(t *testgroup.T) { t.SkipNow() }
 //------------------------------------------------------------------------------
 
 func Test_ThingsYouCanDoWithT(t *testing.T) {
-	testgroup.RunSerial(t, &ThingsYouCanDoWithTTests{})
+	testgroup.RunSerially(t, &ThingsYouCanDoWithTTests{})
 }
 
 type ThingsYouCanDoWithTTests struct{}
@@ -175,13 +175,13 @@ func (sg *Subgroup) AddTwo(t *testgroup.T) { atomic.AddInt32(&sg.Count, 2) }
 
 func (g *ThingsYouCanDoWithTTests) RunSubgroupInSerial(t *testgroup.T) {
 	sg := Subgroup{}
-	t.RunSerial(&sg)
+	t.RunSerially(&sg)
 	t.Equal(int32(3), sg.Count)
 }
 
 func (g *ThingsYouCanDoWithTTests) RunSubgroupInParallel(t *testgroup.T) {
 	sg := Subgroup{}
-	t.RunParallel(&sg)
+	t.RunInParallel(&sg)
 	t.Equal(int32(3), sg.Count)
 }
 

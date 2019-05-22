@@ -14,7 +14,7 @@ import (
 // be sure to add it to the list in that function as well.
 
 func Test_ErrorsTests(t *testing.T) {
-	testgroup.RunSerial(t, &ErrorGroups{})
+	testgroup.RunSerially(t, &ErrorGroups{})
 }
 
 type ErrorGroups struct{}
@@ -22,7 +22,7 @@ type ErrorGroups struct{}
 //------------------------------------------------------------------------------
 
 func (*ErrorGroups) BadReservedMethodSignature(t *testgroup.T) {
-	t.RunSerial(&BadReservedMethodSignatureGroup{})
+	t.RunSerially(&BadReservedMethodSignatureGroup{})
 }
 
 type BadReservedMethodSignatureGroup struct{}
@@ -33,7 +33,7 @@ func (*BadReservedMethodSignatureGroup) PreTest(t *testing.T) {}
 //------------------------------------------------------------------------------
 
 func (*ErrorGroups) BadTestMethodSignature(t *testgroup.T) {
-	t.RunSerial(&BadTestMethodSignatureGroup{})
+	t.RunSerially(&BadTestMethodSignatureGroup{})
 }
 
 type BadTestMethodSignatureGroup struct{}

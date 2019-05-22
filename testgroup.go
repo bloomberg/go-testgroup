@@ -25,20 +25,20 @@ type PostTester interface{ PostTest(t *T) }
 
 var ParallelSeparator = "_"
 
-func RunSerial(t *testing.T, group interface{}) {
+func RunSerially(t *testing.T, group interface{}) {
 	run(t, false, group)
 }
 
-func RunParallel(t *testing.T, group interface{}) {
+func RunInParallel(t *testing.T, group interface{}) {
 	run(t, true, group)
 }
 
-func (t *T) RunSerial(group interface{}) {
-	RunSerial(t.T, group)
+func (t *T) RunSerially(group interface{}) {
+	RunSerially(t.T, group)
 }
 
-func (t *T) RunParallel(group interface{}) {
-	RunParallel(t.T, group)
+func (t *T) RunInParallel(group interface{}) {
+	RunInParallel(t.T, group)
 }
 
 func run(t *testing.T, parallel bool, group interface{}) {
