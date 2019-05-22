@@ -187,7 +187,12 @@ func (g *ThingsYouCanDoWithTTests) RunSubgroupInParallel(t *testgroup.T) {
 
 //------------------------------------------------------------------------------
 
-func Test_Failures(t *testing.T) {
+// The go testing package doesn't include support for asserting that a particular test failed,
+// so we run "go test" in a subprocess to confirm that a particular test reports an error.
+//
+// The erroring tests are located in a separate file guarded by a build tag so that they aren't part
+// of the regular set of tests.
+func Test_Errors(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []string{
@@ -198,7 +203,10 @@ func Test_Failures(t *testing.T) {
 	for _, testName := range tests {
 		t.Run(testName, func(t *testing.T) {
 			cmd := exec.CommandContext(ctx,
-				"go", "test", "-tags=failures", "-run", "FailureGroups/"+testName)
+				"go", "test",
+				"-tags", "testgroup_errors",
+				"-run", fmt.Sprintf("^Test_ErrorsTests/%v$", testName),
+			)
 
 			out, err := cmd.CombinedOutput()
 			if err != nil && err.(*exec.ExitError).ExitCode() != 0 {

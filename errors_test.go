@@ -1,6 +1,6 @@
 // Copyright 2019 Bloomberg Finance L.P.
 
-// +build failures
+// +build testgroup_errors
 
 package testgroup_test
 
@@ -10,18 +10,18 @@ import (
 	"github.com/bloomberg/go-testgroup"
 )
 
-// These tests are run by Test_Failures in group_test.go, so if you are adding a failure test,
+// These tests are run by Test_Errors in testgroup_test.go, so if you are adding an error test,
 // be sure to add it to the list in that function as well.
 
-func Test_FailureGroups(t *testing.T) {
-	testgroup.RunSerial(t, &FailureGroups{})
+func Test_ErrorsTests(t *testing.T) {
+	testgroup.RunSerial(t, &ErrorGroups{})
 }
 
-type FailureGroups struct{}
+type ErrorGroups struct{}
 
 //------------------------------------------------------------------------------
 
-func (*FailureGroups) BadReservedMethodSignature(t *testgroup.T) {
+func (*ErrorGroups) BadReservedMethodSignature(t *testgroup.T) {
 	t.RunSerial(&BadReservedMethodSignatureGroup{})
 }
 
@@ -32,7 +32,7 @@ func (*BadReservedMethodSignatureGroup) PreTest(t *testing.T) {}
 
 //------------------------------------------------------------------------------
 
-func (*FailureGroups) BadTestMethodSignature(t *testgroup.T) {
+func (*ErrorGroups) BadTestMethodSignature(t *testgroup.T) {
 	t.RunSerial(&BadTestMethodSignatureGroup{})
 }
 
