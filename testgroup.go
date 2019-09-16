@@ -33,6 +33,18 @@ func RunInParallel(t *testing.T, group interface{}) {
 	run(t, true, group)
 }
 
+func (t *T) Run(name string, f func(t *T)) {
+	t.T.Run(name, func(t *testing.T) {
+		funcT := &T{
+			T:          t,
+			Assertions: assert.New(t),
+			Require:    require.New(t),
+		}
+
+		f(funcT)
+	})
+}
+
 func (t *T) RunSerially(group interface{}) {
 	RunSerially(t.T, group)
 }
