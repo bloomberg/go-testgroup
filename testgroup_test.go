@@ -198,6 +198,7 @@ func Test_Errors(t *testing.T) {
 	tests := []string{
 		"BadReservedMethodSignature",
 		"BadTestMethodSignature",
+		"NoTestsFound",
 	}
 
 	for _, testName := range tests {

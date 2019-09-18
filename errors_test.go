@@ -39,3 +39,25 @@ func (*ErrorGroups) BadTestMethodSignature(t *testgroup.T) {
 type BadTestMethodSignatureGroup struct{}
 
 func (*BadTestMethodSignatureGroup) Test_accepts_the_wrong_T_type(t *testing.T) {}
+
+//------------------------------------------------------------------------------
+
+type NoTestsFound_TestGroup struct{}
+
+func (*ErrorGroups) NoTestsFound(t *testgroup.T) {
+	t.RunSerially(&NoTestsFound_TestGroup{})
+}
+
+//------------------------------------------------------------------------------
+
+type MixedReceiverMethods_TestGroup struct{}
+
+// Since it has a pointer type receiver, this method is not part of the struct's method set.
+func (*MixedReceiverMethods_TestGroup) PointerMethod(t *testgroup.T) {}
+
+func (MixedReceiverMethods_TestGroup) NonPointerMethod(t *testgroup.T) {}
+
+func (*ErrorGroups) MixedReceiverMethods(t *testgroup.T) {
+	// If a pointer-to-struct were passed as the argument, this would not fail.
+	t.RunSerially(MixedReceiverMethods_TestGroup{})
+}

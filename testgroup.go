@@ -26,14 +26,17 @@ type PostTester interface{ PostTest(t *T) }
 var ParallelSeparator = "_"
 
 func RunSerially(t *testing.T, group interface{}) {
+	t.Helper()
 	run(t, false, group)
 }
 
 func RunInParallel(t *testing.T, group interface{}) {
+	t.Helper()
 	run(t, true, group)
 }
 
 func (t *T) Run(name string, f func(t *T)) {
+	t.T.Helper()
 	t.T.Run(name, func(t *testing.T) {
 		funcT := &T{
 			T:          t,
@@ -46,14 +49,18 @@ func (t *T) Run(name string, f func(t *T)) {
 }
 
 func (t *T) RunSerially(group interface{}) {
+	t.T.Helper()
 	RunSerially(t.T, group)
 }
 
 func (t *T) RunInParallel(group interface{}) {
+	t.T.Helper()
 	RunInParallel(t.T, group)
 }
 
 func run(t *testing.T, parallel bool, group interface{}) {
+	t.Helper()
+
 	groupT := &T{
 		T:          t,
 		Assertions: assert.New(t),
@@ -61,8 +68,12 @@ func run(t *testing.T, parallel bool, group interface{}) {
 	}
 
 	testMethods := findTestMethods(t, group)
-	if t.Failed() {
-		return
+	if len(testMethods) == 0 {
+		t.Fatalf(
+			"testgroup: no tests found for %T."+
+				" Make sure your test methods are exported and that their receiver types"+
+				" match what you passed to testgroup.",
+			group)
 	}
 
 	if pg, ok := group.(PreGrouper); ok {
@@ -84,6 +95,8 @@ func run(t *testing.T, parallel bool, group interface{}) {
 }
 
 func runAllTests(t *testing.T, parallel bool, group interface{}, testMethods []testMethod) {
+	t.Helper()
+
 	for _, m := range testMethods {
 		t.Run(m.Name, func(t *testing.T) {
 			method := m // local copy inside closure
@@ -118,10 +131,24 @@ type testMethod struct {
 }
 
 func findTestMethods(t *testing.T, group interface{}) []testMethod {
+	t.Helper()
+
 	tests := []testMethod{}
 
 	groupValue := reflect.ValueOf(group)
 	groupType := groupValue.Type()
+
+	if groupType.Kind() != reflect.Ptr {
+		ptrType := reflect.PtrTo(groupType)
+		if ptrType != nil && ptrType.NumMethod() != groupType.NumMethod() {
+			t.Fatalf(
+				"testgroup: mixed method receivers: %v has %v methods, but %v has %v methods."+
+					" You should either pass a pointer or make the extra methods private.",
+				groupType, groupType.NumMethod(),
+				ptrType, ptrType.NumMethod(),
+			)
+		}
+	}
 
 	expectedTestSignature := reflect.TypeOf(func(*T) {})
 
@@ -166,6 +193,10 @@ func findTestMethods(t *testing.T, group interface{}) []testMethod {
 			Name:   methodShortName,
 			Method: methodValue,
 		})
+	}
+
+	if t.Failed() {
+		t.Fatal("testgroup: problems finding test methods -- see previous failures")
 	}
 
 	return tests
