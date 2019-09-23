@@ -17,12 +17,6 @@ type T struct {
 	Require *require.Assertions
 }
 
-type PreGrouper interface{ PreGroup(t *T) }
-type PostGrouper interface{ PostGroup(t *T) }
-
-type PreTester interface{ PreTest(t *T) }
-type PostTester interface{ PostTest(t *T) }
-
 var ParallelSeparator = "_"
 
 func RunSerially(t *testing.T, group interface{}) {
@@ -76,11 +70,13 @@ func run(t *testing.T, parallel bool, group interface{}) {
 			group)
 	}
 
-	if pg, ok := group.(PreGrouper); ok {
+	type preGrouper interface{ PreGroup(t *T) }
+	if pg, ok := group.(preGrouper); ok {
 		pg.PreGroup(groupT)
 	}
 
-	if pg, ok := group.(PostGrouper); ok {
+	type postGrouper interface{ PostGroup(t *T) }
+	if pg, ok := group.(postGrouper); ok {
 		defer pg.PostGroup(groupT)
 	}
 
@@ -110,11 +106,13 @@ func runAllTests(t *testing.T, parallel bool, group interface{}, testMethods []t
 				Require:    require.New(t),
 			}
 
-			if pt, ok := group.(PreTester); ok {
+			type preTester interface{ PreTest(t *T) }
+			if pt, ok := group.(preTester); ok {
 				pt.PreTest(methodT)
 			}
 
-			if pt, ok := group.(PostTester); ok {
+			type postTester interface{ PostTest(t *T) }
+			if pt, ok := group.(postTester); ok {
 				defer pt.PostTest(methodT)
 			}
 

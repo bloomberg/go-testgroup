@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog][], and this project adheres to
 
 ## Unreleased ([&#x0394;][unreleased changes])
 
+### Removed
+
+- The `PreGrouper`, `PostGrouper`, `PreTester`, and `PostTester` hook interfaces
+  are no longer exported.
+
 ## [0.2.0][] ([&#x0394;][0.2.0 changes]) - 2019-09-19
 
 ### Added
