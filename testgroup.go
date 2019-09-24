@@ -1,5 +1,10 @@
 // Copyright 2019 Bloomberg Finance L.P.
 
+// Package testgroup helps you group tests together. A subtest of a group is simply an exported
+// method of a type (usually a struct). Being part of a group allows tests to share state and common
+// functionality, including pre/post-group and pre/post-test functions.
+//
+// testgroup was inspired by github.com/stretchr/testify/suite.
 package testgroup
 
 import (
@@ -11,24 +16,52 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// T is a type passed to each test function. It is mainly concerned with test state, and it embeds
+// and contains other types for convenience.
 type T struct {
 	*testing.T
 	*assert.Assertions
 	Require *require.Assertions
 }
 
+// RunInParallelParentTestName is the name of the parent test of RunInParallel subtests.
+//
+// For example, given a function TestParallel that calls RunInParallel on a test group struct with
+// two subtests A and B, the test output might look like this:
+//
+//     $ go test -v
+//     === RUN   TestParallel
+//     === RUN   TestParallel/_
+//     === RUN   TestParallel/_/A
+//     === PAUSE TestParallel/_/A
+//     === RUN   TestParallel/_/B
+//     === PAUSE TestParallel/_/B
+//     === CONT  TestParallel/_/A
+//     === CONT  TestParallel/_/B
+//     --- PASS: TestParallel (0.00s)
+//         --- PASS: TestParallel/_ (0.00s)
+//             --- PASS: TestParallel/_/A (0.00s)
+//             --- PASS: TestParallel/_/B (0.00s)
+//     PASS
+//     ok  	example	0.013s
+//
+// You can change the value of RunInParallelParentTestName to replace "_" above with another string.
 var RunInParallelParentTestName = "_"
 
+// RunSerially runs the test methods of a group sequentially in lexicographic order.
 func RunSerially(t *testing.T, group interface{}) {
 	t.Helper()
 	run(t, false, group)
 }
 
+// RunInParallel runs the test methods of a group simultaneously and waits for all of them to
+// complete before returning.
 func RunInParallel(t *testing.T, group interface{}) {
 	t.Helper()
 	run(t, true, group)
 }
 
+// Run is just like testing.T.Run, but the argument to f is a *testgroup.T instead of a *testing.T.
 func (t *T) Run(name string, f func(t *T)) {
 	t.T.Helper()
 	t.T.Run(name, func(t *testing.T) {
@@ -42,11 +75,14 @@ func (t *T) Run(name string, f func(t *T)) {
 	})
 }
 
+// RunSerially runs the test methods of a group sequentially in lexicographic order.
 func (t *T) RunSerially(group interface{}) {
 	t.T.Helper()
 	RunSerially(t.T, group)
 }
 
+// RunInParallel runs the test methods of a group simultaneously and waits for all of them to
+// complete before returning.
 func (t *T) RunInParallel(group interface{}) {
 	t.T.Helper()
 	RunInParallel(t.T, group)
