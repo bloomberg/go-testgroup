@@ -17,7 +17,7 @@ type T struct {
 	Require *require.Assertions
 }
 
-var ParallelSeparator = "_"
+var RunInParallelParentTestName = "_"
 
 func RunSerially(t *testing.T, group interface{}) {
 	t.Helper()
@@ -82,7 +82,7 @@ func run(t *testing.T, parallel bool, group interface{}) {
 
 	if parallel {
 		// wrap in a t.Run to wait for the parallel tests to finish
-		t.Run(ParallelSeparator, func(t *testing.T) {
+		t.Run(RunInParallelParentTestName, func(t *testing.T) {
 			runAllTests(t, parallel, group, testMethods)
 		})
 	} else {

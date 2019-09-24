@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog][], and this project adheres to
 
 ## Unreleased ([&#x0394;][unreleased changes])
 
+### Changed
+
+- Renamed `ParallelSeparator` to `RunInParallelParentTestName`.
+
 ### Removed
 
 - The `PreGrouper`, `PostGrouper`, `PreTester`, and `PostTester` hook interfaces

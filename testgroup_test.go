@@ -86,9 +86,10 @@ func Test_Parallel(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("%s PostGroup", t.Name()), s.calls[len(s.calls)-1])
 
 	for _, name := range []string{"A", "B", "C", "Skip"} {
+		prefix := fmt.Sprintf("%s/%s/%s", t.Name(), testgroup.RunInParallelParentTestName, name)
 		var pre, test, post bool
 		for _, call := range s.calls[1 : len(s.calls)-1] {
-			if strings.HasPrefix(call, fmt.Sprintf("%s/%s/%s", t.Name(), testgroup.ParallelSeparator, name)) {
+			if strings.HasPrefix(call, prefix) {
 				switch {
 				case strings.HasSuffix(call, "PreTest"):
 					assert.False(t, pre)
