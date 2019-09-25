@@ -130,8 +130,8 @@ func runAllTests(t *testing.T, parallel bool, group interface{}, testMethods []t
 	t.Helper()
 
 	for _, m := range testMethods {
-		t.Run(m.Name, func(t *testing.T) {
-			method := m // local copy inside closure
+		method := m
+		t.Run(method.Name, func(t *testing.T) {
 			if parallel {
 				t.Parallel()
 			}
@@ -172,28 +172,11 @@ func findTestMethods(t *testing.T, group interface{}) []testMethod {
 	groupValue := reflect.ValueOf(group)
 	groupType := groupValue.Type()
 
-	if groupType.Kind() != reflect.Ptr {
-		ptrType := reflect.PtrTo(groupType)
-		if ptrType != nil && ptrType.NumMethod() != groupType.NumMethod() {
-			t.Fatalf(
-				"testgroup: mixed method receivers: %v has %v methods, but %v has %v methods."+
-					" You should either pass a pointer or make the extra methods private.",
-				groupType, groupType.NumMethod(),
-				ptrType, ptrType.NumMethod(),
-			)
-		}
-	}
+	requireGroupAndGroupPtrMethodsToMatch(t, groupType)
 
 	expectedTestSignature := reflect.TypeOf(func(*T) {})
 
 	testingTSignature := reflect.TypeOf(func(*testing.T) {})
-
-	reservedMethodNames := map[string]bool{
-		"PreGroup":  true,
-		"PostGroup": true,
-		"PreTest":   true,
-		"PostTest":  true,
-	}
 
 	for i := 0; i < groupType.NumMethod(); i++ {
 		method := groupType.Method(i)
@@ -203,7 +186,8 @@ func findTestMethods(t *testing.T, group interface{}) []testMethod {
 		methodValue := groupValue.Method(i)
 		methodSignature := methodValue.Type()
 
-		if reservedMethodNames[methodShortName] {
+		switch methodShortName {
+		case "PreGroup", "PostGroup", "PreTest", "PostTest":
 			// Reserved methods should also conform to the expectedTestSignature.
 			if methodSignature != expectedTestSignature {
 				t.Errorf(
@@ -234,4 +218,20 @@ func findTestMethods(t *testing.T, group interface{}) []testMethod {
 	}
 
 	return tests
+}
+
+func requireGroupAndGroupPtrMethodsToMatch(t *testing.T, groupType reflect.Type) {
+	if groupType.Kind() == reflect.Ptr {
+		return
+	}
+
+	ptrType := reflect.PtrTo(groupType)
+	if ptrType != nil && ptrType.NumMethod() != groupType.NumMethod() {
+		t.Fatalf(
+			"testgroup: mixed method receivers: %v has %v methods, but %v has %v methods."+
+				" You should either pass a pointer or make the extra methods private.",
+			groupType, groupType.NumMethod(),
+			ptrType, ptrType.NumMethod(),
+		)
+	}
 }
