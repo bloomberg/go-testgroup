@@ -145,25 +145,35 @@ func (s *Parallel) Skip(t *testgroup.T) { t.SkipNow() }
 //------------------------------------------------------------------------------
 
 func Test_ThingsYouCanDoWithT(t *testing.T) {
-	testgroup.RunSerially(t, &ThingsYouCanDoWithTTests{})
+	testgroup.RunSerially(t, &ThingsYouCanDoWithT{})
 }
 
-type ThingsYouCanDoWithTTests struct{}
+type ThingsYouCanDoWithT struct{}
 
-func (g *ThingsYouCanDoWithTTests) Assert(t *testgroup.T) {
+func (g *ThingsYouCanDoWithT) Assert(t *testgroup.T) {
 	t.Zero(*g)
 	t.Equal(2, 1+1)
 	t.Len("one", 3)
 }
 
-func (g *ThingsYouCanDoWithTTests) Require(t *testgroup.T) {
+func (g *ThingsYouCanDoWithT) Require(t *testgroup.T) {
 	var err error
 	t.Require.NoError(err)
 }
 
-func (g *ThingsYouCanDoWithTTests) TestingT(t *testgroup.T) {
+func (g *ThingsYouCanDoWithT) UseTestingT(t *testgroup.T) {
 	if t.Failed() {
 		t.Log("How did the test already fail?")
+	}
+}
+
+func (g *ThingsYouCanDoWithT) RunSubtests(t *testgroup.T) {
+	positiveNumbers := []int{1, 3, 7, 42}
+	for _, n := range positiveNumbers {
+		num := n
+		t.Run(fmt.Sprintf("%d", num), func(t *testgroup.T) {
+			t.Greater(num, 0)
+		})
 	}
 }
 
@@ -174,13 +184,13 @@ type Subgroup struct {
 func (sg *Subgroup) AddOne(t *testgroup.T) { atomic.AddInt32(&sg.Count, 1) }
 func (sg *Subgroup) AddTwo(t *testgroup.T) { atomic.AddInt32(&sg.Count, 2) }
 
-func (g *ThingsYouCanDoWithTTests) RunSubgroupInSerial(t *testgroup.T) {
+func (g *ThingsYouCanDoWithT) RunSubgroupInSerial(t *testgroup.T) {
 	sg := Subgroup{}
 	t.RunSerially(&sg)
 	t.Equal(int32(3), sg.Count)
 }
 
-func (g *ThingsYouCanDoWithTTests) RunSubgroupInParallel(t *testgroup.T) {
+func (g *ThingsYouCanDoWithT) RunSubgroupInParallel(t *testgroup.T) {
 	sg := Subgroup{}
 	t.RunInParallel(&sg)
 	t.Equal(int32(3), sg.Count)
