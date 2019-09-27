@@ -10,19 +10,13 @@ import (
 	"github.com/bloomberg/go-testgroup"
 )
 
-// These tests are run by Test_Errors in testgroup_test.go, so if you are adding an error test,
-// be sure to add it to the list in that function as well.
-
-func Test_ErrorsTests(t *testing.T) {
-	testgroup.RunSerially(t, &ErrorGroups{})
-}
-
-type ErrorGroups struct{}
+// These tests are run in their own processes by Test_Errors in testgroup_test.go.
+// All tests should have the prefix "Test_Error_" to be found by Test_Errors.
 
 //------------------------------------------------------------------------------
 
-func (*ErrorGroups) BadReservedMethodSignature(t *testgroup.T) {
-	t.RunSerially(&BadReservedMethodSignatureGroup{})
+func Test_Error_BadReservedMethodSignature(t *testing.T) {
+	testgroup.RunSerially(t, &BadReservedMethodSignatureGroup{})
 }
 
 type BadReservedMethodSignatureGroup struct{}
@@ -32,8 +26,8 @@ func (*BadReservedMethodSignatureGroup) PreTest(t *testing.T) {}
 
 //------------------------------------------------------------------------------
 
-func (*ErrorGroups) BadTestMethodSignature(t *testgroup.T) {
-	t.RunSerially(&BadTestMethodSignatureGroup{})
+func Test_Error_BadTestMethodSignature(t *testing.T) {
+	testgroup.RunSerially(t, &BadTestMethodSignatureGroup{})
 }
 
 type BadTestMethodSignatureGroup struct{}
@@ -42,22 +36,22 @@ func (*BadTestMethodSignatureGroup) Test_accepts_the_wrong_T_type(t *testing.T) 
 
 //------------------------------------------------------------------------------
 
-type NoTestsFound_TestGroup struct{}
-
-func (*ErrorGroups) NoTestsFound(t *testgroup.T) {
-	t.RunSerially(&NoTestsFound_TestGroup{})
+func Test_Error_NoTestMethodsFound(t *testing.T) {
+	testgroup.RunSerially(t, &GroupWithoutTestMethods{})
 }
+
+type GroupWithoutTestMethods struct{}
 
 //------------------------------------------------------------------------------
 
-type MixedReceiverMethods_TestGroup struct{}
+func Test_Error_MixedReceiverMethods(t *testing.T) {
+	// If a pointer-to-struct were passed as the argument, this would not fail.
+	testgroup.RunSerially(t, GroupWithMixedReceiverMethods{})
+}
+
+type GroupWithMixedReceiverMethods struct{}
 
 // Since it has a pointer type receiver, this method is not part of the struct's method set.
-func (*MixedReceiverMethods_TestGroup) PointerMethod(t *testgroup.T) {}
+func (*GroupWithMixedReceiverMethods) PointerMethod(t *testgroup.T) {}
 
-func (MixedReceiverMethods_TestGroup) NonPointerMethod(t *testgroup.T) {}
-
-func (*ErrorGroups) MixedReceiverMethods(t *testgroup.T) {
-	// If a pointer-to-struct were passed as the argument, this would not fail.
-	t.RunSerially(MixedReceiverMethods_TestGroup{})
-}
+func (GroupWithMixedReceiverMethods) NonPointerMethod(t *testgroup.T) {}

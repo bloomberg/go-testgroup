@@ -3,6 +3,8 @@
 package testgroup_test
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
@@ -204,25 +206,26 @@ func (g *ThingsYouCanDoWithT) RunSubgroupInParallel(t *testgroup.T) {
 // The erroring tests are located in a separate file guarded by a build tag so that they aren't part
 // of the regular set of tests.
 func Test_Errors(t *testing.T) {
-	ctx := context.Background()
-
-	tests := []string{
-		"BadReservedMethodSignature",
-		"BadTestMethodSignature",
-		"NoTestsFound",
+	tests, err := findErrorTests()
+	if err != nil {
+		t.Fatalf("failed to find error tests: %v", err)
 	}
 
 	for _, tn := range tests {
 		testName := tn
 		t.Run(testName, func(t *testing.T) {
+			ctx := context.Background()
+
 			cmd := exec.CommandContext(ctx,
 				"go", "test",
 				"-tags", "testgroup_errors",
-				"-run", fmt.Sprintf("^Test_ErrorsTests/%v$", testName),
+				"-run", "^"+testName+"$",
 			)
 
+			t.Logf("cmd.Args: %v", cmd.Args)
+
 			out, err := cmd.CombinedOutput()
-			if err != nil && err.(*exec.ExitError).ExitCode() != 0 {
+			if err != nil && err.(*exec.ExitError).ExitCode() == 1 {
 				// It failed, as expected.
 				return
 			}
@@ -234,4 +237,35 @@ func Test_Errors(t *testing.T) {
 			t.FailNow()
 		})
 	}
+}
+
+func findErrorTests() ([]string, error) {
+	const prefix = "Test_Error_"
+
+	ctx := context.Background()
+
+	cmd := exec.CommandContext(ctx,
+		"go", "test",
+		"-tags", "testgroup_errors",
+		"-list", "^"+prefix)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("err: %q combined output:\n%s", err, out)
+	}
+
+	tests := []string{}
+
+	scanner := bufio.NewScanner(bytes.NewReader(out))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, prefix) {
+			tests = append(tests, strings.TrimSpace(line))
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return tests, nil
 }
