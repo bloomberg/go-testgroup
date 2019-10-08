@@ -186,35 +186,34 @@ func findTestMethods(t *testing.T, group interface{}) []testMethod {
 		methodValue := groupValue.Method(i)
 		methodSignature := methodValue.Type()
 
-		switch methodShortName {
-		case "PreGroup", "PostGroup", "PreTest", "PostTest":
-			// Reserved methods should also conform to the expectedTestSignature.
-			if methodSignature != expectedTestSignature {
-				t.Errorf(
-					"testgroup: %v is a reserved method but does not have type %v",
-					methodFullName, expectedTestSignature)
-			}
-			continue
-		}
-
 		switch methodSignature {
 		case expectedTestSignature:
-			break
-		case testingTSignature:
-			t.Errorf("testgroup: %v accepts *testing.T, not *testgroup.T", methodFullName)
-			continue
-		default:
-			continue
-		}
+			switch methodShortName {
+			case "PreGroup", "PostGroup", "PreTest", "PostTest":
+				// These methods are not tests.
+			default:
+				tests = append(tests, testMethod{
+					Name:   methodShortName,
+					Method: methodValue,
+				})
+			}
 
-		tests = append(tests, testMethod{
-			Name:   methodShortName,
-			Method: methodValue,
-		})
+		case testingTSignature:
+			// This case is separate from the default just so we can give a little more help to the
+			// test writer.
+			t.Errorf(
+				"testgroup: %v should accept a *testgroup.T, not a *testing.T.",
+				methodFullName)
+
+		default:
+			t.Errorf(
+				"testgroup: %v is exported, so its signature should be %v.",
+				methodFullName, expectedTestSignature)
+		}
 	}
 
 	if t.Failed() {
-		t.Fatal("testgroup: problems finding test methods -- see previous failures")
+		t.Fatal("testgroup: problems finding valid test methods -- see previous failures")
 	}
 
 	return tests

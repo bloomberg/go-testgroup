@@ -51,21 +51,20 @@ type Serial struct {
 	calls []string
 }
 
-func (s *Serial) Called(t *testgroup.T, name string) {
+func (s *Serial) called(t *testgroup.T, name string) {
 	t.Logf("called %s", name)
 	s.calls = append(s.calls, name)
 }
 
 func (s *Serial) ignoredNonExported(t *testgroup.T) { t.FailNow("should not happen") }
-func (s *Serial) IgnoredExported(int)               { panic("should not happen") }
 
-func (s *Serial) PreGroup(t *testgroup.T)  { s.Called(t, fmt.Sprintf("%s PreGroup", t.Name())) }
-func (s *Serial) PostGroup(t *testgroup.T) { s.Called(t, fmt.Sprintf("%s PostGroup", t.Name())) }
+func (s *Serial) PreGroup(t *testgroup.T)  { s.called(t, fmt.Sprintf("%s PreGroup", t.Name())) }
+func (s *Serial) PostGroup(t *testgroup.T) { s.called(t, fmt.Sprintf("%s PostGroup", t.Name())) }
 
-func (s *Serial) PreTest(t *testgroup.T)  { s.Called(t, fmt.Sprintf("%s PreTest", t.Name())) }
-func (s *Serial) PostTest(t *testgroup.T) { s.Called(t, fmt.Sprintf("%s PostTest", t.Name())) }
+func (s *Serial) PreTest(t *testgroup.T)  { s.called(t, fmt.Sprintf("%s PreTest", t.Name())) }
+func (s *Serial) PostTest(t *testgroup.T) { s.called(t, fmt.Sprintf("%s PostTest", t.Name())) }
 
-func (s *Serial) doTest(t *testgroup.T) { s.Called(t, t.Name()) }
+func (s *Serial) doTest(t *testgroup.T) { s.called(t, t.Name()) }
 
 // These methods are recognized as tests:
 func (s *Serial) A(t *testgroup.T)    { s.doTest(t) }
@@ -123,20 +122,20 @@ type Parallel struct {
 	mutex sync.Mutex
 }
 
-func (s *Parallel) Called(t *testgroup.T, name string) {
+func (s *Parallel) called(t *testgroup.T, name string) {
 	t.Logf("called %s", name)
 	s.mutex.Lock()
 	s.calls = append(s.calls, name)
 	s.mutex.Unlock()
 }
 
-func (s *Parallel) PreGroup(t *testgroup.T)  { s.Called(t, fmt.Sprintf("%s PreGroup", t.Name())) }
-func (s *Parallel) PostGroup(t *testgroup.T) { s.Called(t, fmt.Sprintf("%s PostGroup", t.Name())) }
+func (s *Parallel) PreGroup(t *testgroup.T)  { s.called(t, fmt.Sprintf("%s PreGroup", t.Name())) }
+func (s *Parallel) PostGroup(t *testgroup.T) { s.called(t, fmt.Sprintf("%s PostGroup", t.Name())) }
 
-func (s *Parallel) PreTest(t *testgroup.T)  { s.Called(t, fmt.Sprintf("%s PreTest", t.Name())) }
-func (s *Parallel) PostTest(t *testgroup.T) { s.Called(t, fmt.Sprintf("%s PostTest", t.Name())) }
+func (s *Parallel) PreTest(t *testgroup.T)  { s.called(t, fmt.Sprintf("%s PreTest", t.Name())) }
+func (s *Parallel) PostTest(t *testgroup.T) { s.called(t, fmt.Sprintf("%s PostTest", t.Name())) }
 
-func (s *Parallel) doTest(t *testgroup.T) { s.Called(t, t.Name()) }
+func (s *Parallel) doTest(t *testgroup.T) { s.called(t, t.Name()) }
 
 // These methods are recognized as tests:
 func (s *Parallel) A(t *testgroup.T)    { s.doTest(t) }

@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog][], and this project adheres to
 
 ### Changed
 
+- The test group will now fail if the group object has an exported method that
+  does not conform to the expected signature of a test/hook. This should further
+  minimize subtest methods being left out of the group for having the wrong
+  function signature.
+
 - Renamed `ParallelSeparator` to `RunInParallelParentTestName`.
 
 ### Removed

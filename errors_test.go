@@ -15,24 +15,34 @@ import (
 
 //------------------------------------------------------------------------------
 
-func Test_Error_BadReservedMethodSignature(t *testing.T) {
-	testgroup.RunSerially(t, &BadReservedMethodSignatureGroup{})
+func Test_Error_ReservedMethodWithBadArg(t *testing.T) {
+	testgroup.RunSerially(t, &ReservedMethodWithBadArgGroup{})
 }
 
-type BadReservedMethodSignatureGroup struct{}
+type ReservedMethodWithBadArgGroup struct{}
 
 // This is a bad PreTest method since it doesn't accept *testgroup.T.
-func (*BadReservedMethodSignatureGroup) PreTest(t *testing.T) {}
+func (*ReservedMethodWithBadArgGroup) PreTest(t *testing.T) {}
 
 //------------------------------------------------------------------------------
 
-func Test_Error_BadTestMethodSignature(t *testing.T) {
-	testgroup.RunSerially(t, &BadTestMethodSignatureGroup{})
+func Test_Error_TestMethodWithBadArg(t *testing.T) {
+	testgroup.RunSerially(t, &TestMethodWithBadArgGroup{})
 }
 
-type BadTestMethodSignatureGroup struct{}
+type TestMethodWithBadArgGroup struct{}
 
-func (*BadTestMethodSignatureGroup) Test_accepts_the_wrong_T_type(t *testing.T) {}
+func (*TestMethodWithBadArgGroup) This_method_accepts_the_wrong_type_of_T(t *testing.T) {}
+
+//------------------------------------------------------------------------------
+
+func Test_Error_TestMethodWithoutArg(t *testing.T) {
+	testgroup.RunSerially(t, &TestMethodWithoutArgGroup{})
+}
+
+type TestMethodWithoutArgGroup struct{}
+
+func (*TestMethodWithoutArgGroup) This_method_is_missing_its_argument() {}
 
 //------------------------------------------------------------------------------
 

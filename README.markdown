@@ -51,9 +51,9 @@ func (g *MyGroup) SecondTest(t *testgroup.T) {
 
 ## Finding subtests
 
-`testgroup` considers _all_ of your group's exported methods as possible
-subtests. You do _not_ need to start your subtests with the word `Test`. A valid
-subtest accepts a `*testgroup.T` as its only argument.
+A group's subtests are the exported methods of your group object. Each subtest
+must accept a `*testgroup.T` as its only argument and return nothing. You do
+_not_ need to start your subtest methods with the word `Test`.
 
 ## Running subtests
 
