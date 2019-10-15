@@ -221,6 +221,10 @@ func Test_Errors(t *testing.T) {
 				"-run", "^"+testName+"$",
 			)
 
+			if raceDetectorEnabled {
+				cmd.Args = append(cmd.Args, "-race")
+			}
+
 			cmd.Args = append(cmd.Args, goTestCoverageArgs(t.Name())...)
 
 			t.Logf("cmd.Args: %v", cmd.Args)
