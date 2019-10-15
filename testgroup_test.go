@@ -88,7 +88,10 @@ func Test_Parallel(t *testing.T) {
 
 	for _, name := range []string{"A", "B", "C", "Skip"} {
 		prefix := fmt.Sprintf("%s/%s/%s", t.Name(), testgroup.RunInParallelParentTestName, name)
-		var pre, test, post bool
+		pre := false
+		test := false
+		post := false
+
 		for _, call := range s.calls[1 : len(s.calls)-1] {
 			if strings.HasPrefix(call, prefix) {
 				switch {
@@ -96,21 +99,25 @@ func Test_Parallel(t *testing.T) {
 					assert.False(t, pre)
 					assert.False(t, test)
 					assert.False(t, post)
+
 					pre = true
 				case strings.HasSuffix(call, "PostTest"):
 					assert.True(t, pre)
 					assert.Equal(t, name != "Skip", test)
 					assert.False(t, post)
+
 					post = true
 				default:
 					assert.NotEqual(t, "Skip", name)
 					assert.True(t, pre)
 					assert.False(t, test)
 					assert.False(t, post)
+
 					test = true
 				}
 			}
 		}
+
 		assert.True(t, pre)
 		assert.Equal(t, name != "Skip", test)
 		assert.True(t, post)
@@ -158,7 +165,8 @@ func (g *ThingsYouCanDoWithT) Assert(t *testgroup.T) {
 }
 
 func (g *ThingsYouCanDoWithT) Require(t *testgroup.T) {
-	var err error
+	var b strings.Builder
+	_, err := fmt.Fprintf(&b, "The answer is %d.", 42)
 	t.Require.NoError(err)
 }
 
@@ -268,6 +276,7 @@ func findErrorTests() ([]string, error) {
 			tests = append(tests, strings.TrimSpace(line))
 		}
 	}
+
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}

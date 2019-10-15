@@ -107,11 +107,13 @@ func run(t *testing.T, parallel bool, group interface{}) {
 	}
 
 	type preGrouper interface{ PreGroup(t *T) }
+
 	if pg, ok := group.(preGrouper); ok {
 		pg.PreGroup(groupT)
 	}
 
 	type postGrouper interface{ PostGroup(t *T) }
+
 	if pg, ok := group.(postGrouper); ok {
 		defer pg.PostGroup(groupT)
 	}
@@ -197,14 +199,12 @@ func findTestMethods(t *testing.T, group interface{}) []testMethod {
 					Method: methodValue,
 				})
 			}
-
 		case testingTSignature:
 			// This case is separate from the default just so we can give a little more help to the
 			// test writer.
 			t.Errorf(
 				"testgroup: %v should accept a *testgroup.T, not a *testing.T.",
 				methodFullName)
-
 		default:
 			t.Errorf(
 				"testgroup: %v is exported, so its signature should be %v.",

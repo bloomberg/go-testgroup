@@ -19,6 +19,7 @@ func goTestCoverageArgs(testName string) []string {
 	}
 
 	relPath := filepath.Join(coverageDir, testName)
+
 	absPath, err := filepath.Abs(relPath)
 	if err != nil {
 		panic(err)
