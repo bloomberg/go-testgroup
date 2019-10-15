@@ -221,6 +221,8 @@ func Test_Errors(t *testing.T) {
 				"-run", "^"+testName+"$",
 			)
 
+			cmd.Args = append(cmd.Args, goTestCoverageArgs(t.Name())...)
+
 			t.Logf("cmd.Args: %v", cmd.Args)
 
 			out, err := cmd.CombinedOutput()
