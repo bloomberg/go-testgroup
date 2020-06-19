@@ -56,6 +56,7 @@ func (s *Serial) called(t *testgroup.T, name string) {
 	s.calls = append(s.calls, name)
 }
 
+// nolint:unused // This function being unused is itself a test.
 func (s *Serial) ignoredNonExported(t *testgroup.T) { t.FailNow("should not happen") }
 
 func (s *Serial) PreGroup(t *testgroup.T)  { s.called(t, fmt.Sprintf("%s PreGroup", t.Name())) }
@@ -67,6 +68,7 @@ func (s *Serial) PostTest(t *testgroup.T) { s.called(t, fmt.Sprintf("%s PostTest
 func (s *Serial) doTest(t *testgroup.T) { s.called(t, t.Name()) }
 
 // These methods are recognized as tests:
+
 func (s *Serial) A(t *testgroup.T)    { s.doTest(t) }
 func (s *Serial) B(t *testgroup.T)    { s.doTest(t) }
 func (s *Serial) C(t *testgroup.T)    { s.doTest(t) }
@@ -87,41 +89,45 @@ func Test_Parallel(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("%s PostGroup", t.Name()), s.calls[len(s.calls)-1])
 
 	for _, name := range []string{"A", "B", "C", "Skip"} {
-		prefix := fmt.Sprintf("%s/%s/%s", t.Name(), testgroup.RunInParallelParentTestName, name)
-		pre := false
-		test := false
-		post := false
+		validateCallOrderForFunc(t, &s, name)
+	}
+}
 
-		for _, call := range s.calls[1 : len(s.calls)-1] {
-			if strings.HasPrefix(call, prefix) {
-				switch {
-				case strings.HasSuffix(call, "PreTest"):
-					assert.False(t, pre)
-					assert.False(t, test)
-					assert.False(t, post)
+func validateCallOrderForFunc(t *testing.T, s *Parallel, funcName string) {
+	prefix := fmt.Sprintf("%s/%s/%s", t.Name(), testgroup.RunInParallelParentTestName, funcName)
+	pre := false
+	test := false
+	post := false
 
-					pre = true
-				case strings.HasSuffix(call, "PostTest"):
-					assert.True(t, pre)
-					assert.Equal(t, name != "Skip", test)
-					assert.False(t, post)
+	for _, call := range s.calls[1 : len(s.calls)-1] {
+		if strings.HasPrefix(call, prefix) {
+			switch {
+			case strings.HasSuffix(call, "PreTest"):
+				assert.False(t, pre)
+				assert.False(t, test)
+				assert.False(t, post)
 
-					post = true
-				default:
-					assert.NotEqual(t, "Skip", name)
-					assert.True(t, pre)
-					assert.False(t, test)
-					assert.False(t, post)
+				pre = true
+			case strings.HasSuffix(call, "PostTest"):
+				assert.True(t, pre)
+				assert.Equal(t, funcName != "Skip", test)
+				assert.False(t, post)
 
-					test = true
-				}
+				post = true
+			default:
+				assert.NotEqual(t, "Skip", funcName)
+				assert.True(t, pre)
+				assert.False(t, test)
+				assert.False(t, post)
+
+				test = true
 			}
 		}
-
-		assert.True(t, pre)
-		assert.Equal(t, name != "Skip", test)
-		assert.True(t, post)
 	}
+
+	assert.True(t, pre)
+	assert.Equal(t, funcName != "Skip", test)
+	assert.True(t, post)
 }
 
 type Parallel struct {
@@ -145,6 +151,7 @@ func (s *Parallel) PostTest(t *testgroup.T) { s.called(t, fmt.Sprintf("%s PostTe
 func (s *Parallel) doTest(t *testgroup.T) { s.called(t, t.Name()) }
 
 // These methods are recognized as tests:
+
 func (s *Parallel) A(t *testgroup.T)    { s.doTest(t) }
 func (s *Parallel) B(t *testgroup.T)    { s.doTest(t) }
 func (s *Parallel) C(t *testgroup.T)    { s.doTest(t) }
@@ -220,35 +227,7 @@ func Test_Errors(t *testing.T) {
 
 	for _, tn := range tests {
 		testName := tn
-		t.Run(testName, func(t *testing.T) {
-			ctx := context.Background()
-
-			cmd := exec.CommandContext(ctx,
-				"go", "test",
-				"-tags", "testgroup_errors",
-				"-run", "^"+testName+"$",
-			)
-
-			if raceDetectorEnabled {
-				cmd.Args = append(cmd.Args, "-race")
-			}
-
-			cmd.Args = append(cmd.Args, goTestCoverageArgs(t.Name())...)
-
-			t.Logf("cmd.Args: %v", cmd.Args)
-
-			out, err := cmd.CombinedOutput()
-			if err != nil && err.(*exec.ExitError).ExitCode() == 1 {
-				// It failed, as expected.
-				return
-			}
-
-			t.Logf("expected test to fail!")
-			t.Logf("cmd.Args: %#v", cmd.Args)
-			t.Logf("err: %v", err)
-			t.Logf("combined output:\n%s", out)
-			t.FailNow()
-		})
+		t.Run(testName, func(t *testing.T) { runTestExpectingFailure(t, testName) })
 	}
 }
 
@@ -264,7 +243,7 @@ func findErrorTests() ([]string, error) {
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("err: %q combined output:\n%s", err, out)
+		return nil, fmt.Errorf("%w: combined output:\n%s", err, out)
 	}
 
 	tests := []string{}
@@ -282,4 +261,35 @@ func findErrorTests() ([]string, error) {
 	}
 
 	return tests, nil
+}
+
+func runTestExpectingFailure(t *testing.T, testName string) {
+	ctx := context.Background()
+
+	// nolint:gosec // no risk using the testName param
+	cmd := exec.CommandContext(ctx,
+		"go", "test",
+		"-tags", "testgroup_errors",
+		"-run", fmt.Sprintf("^%s$", testName),
+	)
+
+	if raceDetectorEnabled {
+		cmd.Args = append(cmd.Args, "-race")
+	}
+
+	cmd.Args = append(cmd.Args, goTestCoverageArgs(t.Name())...)
+
+	t.Logf("cmd.Args: %v", cmd.Args)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil && err.(*exec.ExitError).ExitCode() == 1 {
+		// It failed, as expected.
+		return
+	}
+
+	t.Logf("expected test to fail!")
+	t.Logf("cmd.Args: %#v", cmd.Args)
+	t.Logf("err: %v", err)
+	t.Logf("combined output:\n%s", out)
+	t.FailNow()
 }

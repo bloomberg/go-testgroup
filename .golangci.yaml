@@ -1,20 +1,16 @@
 linters:
-  enable-all: true
+  presets:
+    - bugs
+    - complexity
+    - format
+    - performance
+    - style
+    - unused
+  disable:
+    - wsl
 
 linters-settings:
   gocyclo:
     min-complexity: 10
-  lll:
-    line-length: 100
-
-issues:
-  exclude-rules:
-    # ignoredNonExported is purposefully not called.
-    - linters: ["unused"]
-      path: 'testgroup_test\.go'
-      source: "ignoredNonExported"
-
-    # RunInParallelParentTestName is global so users can override it.
-    - linters: ["gochecknoglobals"]
-      path: 'testgroup\.go'
-      source: "RunInParallelParentTestName"
+  gocognit:
+    min-complexity: 10
