@@ -14,3 +14,11 @@ linters-settings:
     min-complexity: 10
   gocognit:
     min-complexity: 10
+
+issues:
+  exclude-rules:
+    # This global variable is part of the API.
+    - path: "testgroup\\.go"
+      source: "^var RunInParallelParentTestName = "
+      linters:
+        - gochecknoglobals

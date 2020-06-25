@@ -46,7 +46,7 @@ type T struct {
 //     ok  	example	0.013s
 //
 // You can change the value of RunInParallelParentTestName to replace "_" above with another string.
-var RunInParallelParentTestName = "_" // nolint:gochecknoglobals // part of the API
+var RunInParallelParentTestName = "_"
 
 // RunSerially runs the test methods of a group sequentially in lexicographic order.
 func RunSerially(t *testing.T, group interface{}) {
