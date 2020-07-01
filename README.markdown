@@ -23,6 +23,10 @@ data, helper functions, and pre/post-group and pre/post-test hooks.
     - [Running subgroups](#running-subgroups)
     - [Using `testing.T`](#using-testingt)
     - [Asserting with `testify/assert` and `testify/require`](#asserting-with-testifyassert-and-testifyrequire)
+- [Code of Conduct](#code-of-conduct)
+- [Contributing](#contributing)
+- [License](#license)
+- [Security Policy](#security-policy)
 
 ## Features
 
@@ -346,3 +350,37 @@ func (*MyGroup) MySubtest(t *testgroup.T) {
 
 [testify-assert-docs]: https://pkg.go.dev/github.com/stretchr/testify/assert
 [testify-require-docs]: https://pkg.go.dev/github.com/stretchr/testify/require
+
+## Code of Conduct
+
+`testgroup` has adopted a
+[Code of Conduct](https://github.com/bloomberg/.github/blob/master/CODE_OF_CONDUCT.md).
+If you have any concerns about the Code or behavior which you have experienced
+in the project, please contact us at opensource@bloomberg.net.
+
+## Contributing
+
+We'd love to hear from you, whether you've found a bug or want to suggest how
+`testgroup` could be better. Please
+[open an issue](https://github.com/bloomberg/go-testgroup/issues/new/choose) and
+let us know what you think!
+
+If you want to contribute code to `testgroup`, please be sure to read our
+[contribution guidelines](https://github.com/bloomberg/.github/blob/master/CONTRIBUTING.md).
+**We highly recommend opening an issue before you start working on your pull
+request.** We'd like to talk with you about the change you want to make _before_
+you start making it. :smile:
+
+## License
+
+`testgroup` is licensed under the [Apache License, Version 2.0](LICENSE).
+
+## Security Policy
+
+If you believe you have identified a security vulnerability in this project,
+please send an email to the project team at opensource@bloomberg.net detailing
+the suspected issue and any methods you've found to reproduce it.
+
+Please do _not_ open an issue in the GitHub repository, as we'd prefer to keep
+vulnerability reports private until we've had an opportunity to review and
+address them. Thank you.
