@@ -1,10 +1,13 @@
 // Copyright 2019 Bloomberg Finance L.P.
 
-// Package testgroup helps you group tests together. A subtest of a group is simply an exported
-// method of a type (usually a struct). Being part of a group allows tests to share state and common
-// functionality, including pre/post-group and pre/post-test functions.
+// Package testgroup helps you organize tests into groups. A test group is a struct (or other type)
+// whose exported methods are its subtests. The subtests can share data, helper functions, and
+// pre/post-group and pre/post-test hooks.
 //
 // testgroup was inspired by github.com/stretchr/testify/suite.
+//
+// For usage examples and how-to documentation, see the README in
+// https://github.com/bloomberg/go-testgroup.
 package testgroup
 
 import (

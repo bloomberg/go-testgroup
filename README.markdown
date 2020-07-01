@@ -1,66 +1,177 @@
 # testgroup
 
-`testgroup` helps you group tests together. A subtest of a group is simply an
-exported method of a type (usually a `struct`). Being part of a group allows
-tests to share state and common functionality, including pre/post-group and
-pre/post-test functions.
+`testgroup` helps you organize tests into groups. A test group is a `struct` (or
+other type) whose exported methods are its subtests. The subtests can share
+data, helper functions, and pre/post-group and pre/post-test hooks.
 
-`testgroup` was inspired by [testify][]'s [suite][testify-suite-godoc] package.
+`testgroup` was inspired by
+[`github.com/stretchr/testify/suite`](https://pkg.go.dev/github.com/stretchr/testify/suite).
 
-## Why make a new framework?
+## Contents
 
-`testify/suite` is great, but it doesn't do well with tests that run in
-parallel. Testify stores each test's `*testing.T` inside the `Suite` struct,
-which means that only one `*testing.T` is available at a given time. If you run
-tests in parallel, failures can be reported as another test failing, and if a
-test failure is reported twice, `testing` panics.
+- [Features](#features)
+- [Example](#example)
+- [Documentation](#documentation)
+  - [Motivation ("Why not `testify/suite`?")](#motivation-why-not-testifysuite)
+  - [Writing test groups](#writing-test-groups)
+    - [Pre/post-group and pre/post-test hooks (optional)](#prepost-group-and-prepost-test-hooks-optional)
+  - [Running test groups](#running-test-groups)
+    - [Serially](#serially)
+    - [In parallel](#in-parallel)
+  - [Using `testgroup.T`](#using-testgroupt)
+    - [Running subtests](#running-subtests)
+    - [Running subgroups](#running-subgroups)
+    - [Using `testing.T`](#using-testingt)
+    - [Asserting with `testify/assert` and `testify/require`](#asserting-with-testifyassert-and-testifyrequire)
 
-After separating the group-wide state from the test-specific state, it was easy
-to make a few usability improvements to the `*testing.T`-like object.
+## Features
+
+- Support for parallel execution of tests, including waiting for parallel tests
+  to finish
+- Easy access to assertion helpers
+- Pre/post-group and pre/post-test hooks
 
 ## Example
 
-Here's what a simple test group looks like:
+Here's a simple test group from
+[`example_absint_test.go`](example_absint_test.go):
 
 ```go
-package main
+package testgroup_test
 
 import (
-    "testing"
+	"testing"
 
-    "github.com/bloomberg/go-testgroup"
+	"github.com/bloomberg/go-testgroup"
 )
 
-// This entrypoint function is detected and called by the go test framework.
-func TestMyGroup(t *testing.T) {
-    testgroup.RunSerially(t, &MyGroup{})
+func AbsInt(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
 }
 
-type MyGroup struct{
-    // Group-wide data/state can be stored here.
+// This function is the entry point to the test group.
+// Because it starts with "Test" and accepts a *testing.T argument,
+// it is detected and called by the Go testing package when you run "go test".
+func TestAbsInt(t *testing.T) {
+	testgroup.RunSerially(t, &AbsIntTests{})
 }
 
-func (g *MyGroup) FirstTest(t *testgroup.T) {
-    // test code
+type AbsIntTests struct {
+	// Group-wide data/state can be stored here.
 }
 
-func (g *MyGroup) SecondTest(t *testgroup.T) {
-    // test code
+func (grp *AbsIntTests) DoesNotChangeNonNegativeNumbers(t *testgroup.T) {
+	t.Equal(0, AbsInt(0))
+	t.Equal(1, AbsInt(1))
+	t.Equal(123456789, AbsInt(123456789))
+}
+
+func (grp *AbsIntTests) MakesNegativeNumbersPositive(t *testgroup.T) {
+	t.Equal(1, AbsInt(-1))
+	t.Equal(123456789, AbsInt(-123456789))
 }
 ```
 
-## Finding subtests
+When you run `go test`, you'll see something like this:
 
-A group's subtests are the exported methods of your group object. Each subtest
-must accept a `*testgroup.T` as its only argument and return nothing. You do
-_not_ need to start your subtest methods with the word `Test`.
+```console
+$ go test -v example_absint_test.go
+=== RUN   TestAbsInt
+=== RUN   TestAbsInt/DoesNotChangeNonNegativeNumbers
+=== RUN   TestAbsInt/MakesNegativeNumbersPositive
+--- PASS: TestAbsInt (0.00s)
+    --- PASS: TestAbsInt/DoesNotChangeNonNegativeNumbers (0.00s)
+    --- PASS: TestAbsInt/MakesNegativeNumbersPositive (0.00s)
+PASS
+ok  	command-line-arguments	0.014s
+```
 
-## Running subtests
+## Documentation
 
-`testgroup` has two functions to run subtests in a group: `RunSerially` and
-`RunInParallel`.
+### Motivation ("Why not `testify/suite`?")
 
-### RunSerially
+`testgroup` was inspired by [testify][]'s [suite][testify-suite-docs] package.
+We really like `testify/suite`, but we had trouble getting subtests to run in
+parallel. Testify stores each test's `testing.T` inside the `Suite` struct,
+which means that only one `testing.T` is available at a given time. If you run
+tests in parallel, failures can be reported as another test failing, and if a
+test failure is reported twice, `testing` panics.
+
+After separating the group-wide state from the test-specific state, we also made
+a few usability improvements to the `testing.T`-like object.
+
+[testify]: https://github.com/stretchr/testify
+[testify-suite-docs]: https://pkg.go.dev/github.com/stretchr/testify/suite
+
+### Writing test groups
+
+A test group is a `struct` (or other type) whose exported methods are its
+subtests.
+
+```go
+type MyGroup struct{}
+
+func (*MyGroup) Subtest(t *testgroup.T) {
+	// ...
+}
+```
+
+`testgroup` considers _all_ of the type's exported methods to be subtests.
+(Unlike `testing`-style tests or `testify/suite` subtests, you don't have to
+start `testgroup` subtests with the prefix `Test`.)
+
+A valid subtest accepts a `*testgroup.T` as its only argument and does not
+return anything. If a subtest (exported method) has a different signature,
+`testgroup` will fail the parent test to avoid accidentally skipping malformed
+tests.
+
+#### Pre/post-group and pre/post-test hooks (optional)
+
+`testgroup` considers a few names to be hook methods that have special behavior.
+You may find them useful to help clarify your code and avoid some repetition.
+
+`testgroup` supports the following hooks:
+
+```go
+func (*MyGroup) PreGroup(t *testgroup.T)  {
+	// code that will run before any of MyGroup's subtests have started
+}
+
+func (*MyGroup) PostGroup(t *testgroup.T) {
+	// code that will run after all of MyGroup's subtests have finished
+}
+
+func (*MyGroup) PreTest(t *testgroup.T)  {
+	// code that will run at the beginning of each subtest in MyGroup
+}
+
+func (*MyGroup) PostTest(t *testgroup.T) {
+	// code that will run at the end of each subtest in MyGroup
+}
+```
+
+Like subtests, these methods accept a single `*testgroup.T` argument.
+
+If you skip a test by calling `t.Skip()`, the `PreTest` and `PostTest` hook
+functions will still run before and after that test.
+
+### Running test groups
+
+Here's an example of a top-level `testing`-style test running the subtests in a
+test group:
+
+```go
+func TestMyGroup(t *testing.T) {
+	testgroup.RunSerially(t, &MyGroup{})
+}
+```
+
+`testgroup` has two ways to run subtests: `RunSerially` and `RunInParallel`.
+
+#### Serially
 
 `RunSerially` runs a group's subtests in lexicographical order, one after
 another.
@@ -95,18 +206,28 @@ PASS
 ok  	command-line-arguments	0.014s
 ```
 
-### RunInParallel
+#### In parallel
 
-`RunInParallel` runs a group's subtests in parallel. It wraps a parent test
-around your subtests to ensure that the `PreGroup`/`PostGroup` hooks run at the
-correct time. You do not need to call `t.Parallel()` inside your tests &ndash;
-`testgroup` does this for you.
+`RunInParallel` runs a group's subtests in parallel.
 
-By default, the parent test is named `_`, but you can override this by setting
+When using this mode, **you must not call `t.Parallel()` inside your tests**
+&ndash; `testgroup` does this for you.
+
+In order to make sure [hooks](#prepost-group-and-prepost-test-hooks) run at the
+correct time, `RunInParallel` wraps a parent test around your subtests. By
+default, the parent test is named `_`, but you can override this by setting
 `RunInParallelParentTestName`.
 
-Here's a similar contrived example that uses `RunInParallel` instead of
-`RunSerially`:
+The execution order of subtests and hooks looks like this:
+
+1. Run `PreGroup`.
+2. In parallel, run the following sequence of steps for each subtest:
+   1. Run `PreTest`.
+   2. Run the subtest method.
+   3. Run `PostTest`.
+3. After all subtests finish, run `PostGroup`.
+
+Here's another contrived example:
 
 ```go
 func TestParallel(t *testing.T) {
@@ -144,76 +265,84 @@ PASS
 ok  	command-line-arguments	0.014s
 ```
 
-## Hooks
+### Using `testgroup.T`
 
-`testgroup` looks for the following specially-named hook methods:
+`testgroup.T` is a type passed to each test function. It is mainly concerned
+with test state, and it embeds and contains other types for convenience.
+
+#### Running subtests
+
+`testgroup.T.Run` is just like `testing.T.Run`, but its test function has a
+`*testgroup.T` argument for convenience.
 
 ```go
-type MyGroup struct{}
+func (*MyGroup) MySubtest(t *testgroup.T) {
+	// set up a table of testcases
+	type testcase struct{
+		input, output int
+	}
+	table := []testcase{
+		// ...
+	}
 
-func (*MyGroup) PreGroup(t *testgroup.T)  {} // runs before MyGroup's subtests have started
-func (*MyGroup) PostGroup(t *testgroup.T) {} // runs after MyGroup's subtests have finished
-
-func (*MyGroup) PreTest(t *testgroup.T)  {} // runs before each subtest in MyGroup
-func (*MyGroup) PostTest(t *testgroup.T) {} // runs after each subtest in MyGroup
+	for _, tc := range table {
+		tc := tc // local copy to pin range variable
+		t.Run(fmt.Sprintf("%d", tc.input), func (t *testgroup.T) {
+			t.Equal(tc.output, someCalculation(tc.input))
+		})
+	}
+}
 ```
 
-Like subtests, these methods accept a single `*testgroup.T` argument.
+#### Running subgroups
 
-## Using `testgroup.T`
+`testgroup.T` has a few convenience methods that simply wrap the package-level
+functions.
 
-`testgroup.T` contains a number of useful members.
+- `testgroup.T.RunSerially` calls `testgroup.RunSerially`.
+- `testgroup.T.RunInParallel` calls `testgroup.RunInParallel`.
 
-- It embeds a `*testing.T` struct, which lets you can write
+#### Using `testing.T`
 
-  ```go
-  func (*MyGroup) MySubtest(t *testgroup.T) {
-      if testing.Short() {
-          t.Skip("skipping due to short mode")
-      }
+`testgroup.T` embeds a `*testing.T`, which lets you write
 
-      // set up a table of testcases ...
+```go
+func (*MyGroup) MySubtest(t *testgroup.T) {
+	if testing.Short() {
+		t.Skip("skipping due to short mode")
+	}
 
-      for _, row := range table {
-          t.Run(name, func (t *testing.T) {
-              // test code
-          })
-      }
-  }
-  ```
+	t.Logf("Have we failed yet? %v", t.Failed())
+}
+```
 
-- It embeds a [`testify/assert`][testify-assert-godoc] `*Assertions` struct,
-  which lets you write
+#### Asserting with `testify/assert` and `testify/require`
 
-  ```go
-  func (*MyGroup) MySubtest(t *testgroup.T) {
-      result := callSomeFunction(input)
-      t.Equal(expectedValue, result)
-  }
-  ```
+Similar to `testify/suite`, `testgroup.T` embeds a
+[`testify/assert`][testify-assert-docs] `*Assertions`, so you can call its
+member functions directly from a `testgroup.T`:
 
-- It contains a [`testify/require`][testify-require-godoc] `*Assertions` struct
-  named `Require`, which lets you write
+```go
+func (*MyGroup) MySubtest(t *testgroup.T) {
+	const expectedValue = 42
+	result := callSomeFunction(input)
+	t.Equal(expectedValue, result)
+}
+```
 
-  ```go
-  func (*MyGroup) MySubtest(t *testgroup.T) {
-      result, err := somethingThatMightError(input)
-      t.Require.NoError(err)
-      t.Require.NotNil(result)
-      t.Equal(expectedValue, result)
-  }
-  ```
+`testgroup.T` also contains a [`testify/require`][testify-require-docs]
+`*Assertions` named `Require`. You can use it to fail your test immediately
+instead of continuing.
 
-## Notes
+```go
+func (*MyGroup) MySubtest(t *testgroup.T) {
+	const expectedValue = 42
+	result, err := somethingThatMightError(input)
+	t.NoError(err)                  // testify/assert assertion -- continues test execution if it fails
+	t.Require.NotNil(result)        // testify/require assertion -- stops test execution if it fails
+	t.Equal(expectedValue, result)
+}
+```
 
-If you skip a test by calling `t.Skip()`, both the `PreTest` and `PostTest`
-hooks will still run for that test.
-
-## Acknowledgements
-
-[Testify][] is copyright &copy; 2012-2018 Mat Ryer and Tyler Bunnell.
-
-[testify]: https://github.com/stretchr/testify
-[testify-assert-godoc]: https://godoc.org/github.com/stretchr/testify/assert
-[testify-require-godoc]: https://godoc.org/github.com/stretchr/testify/require
-[testify-suite-godoc]: https://godoc.org/github.com/stretchr/testify/suite
+[testify-assert-docs]: https://pkg.go.dev/github.com/stretchr/testify/assert
+[testify-require-docs]: https://pkg.go.dev/github.com/stretchr/testify/require
