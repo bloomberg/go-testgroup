@@ -1,0 +1,18 @@
+language: go
+
+go:
+  - stable
+  - oldstable
+
+before_install:
+  - |
+    (cd $GOPATH &&
+    go get github.com/wadey/gocovmerge &&
+    rm -rf $GOPATH/src/github.com/wadey)
+
+before_script:
+  - mkdir COVERAGE
+
+script:
+  - COVERAGE_DIR=COVERAGE go test -v -coverprofile=COVERAGE/coverage.root ./...
+  - go tool cover -func <(gocovmerge $(find COVERAGE -type f))
