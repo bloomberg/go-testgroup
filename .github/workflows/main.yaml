@@ -1,0 +1,78 @@
+name: Main
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test and report coverage
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_DIR: COVERAGE
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: |
+          mkdir "$COVERAGE_DIR"
+          go test \
+            -coverprofile="${COVERAGE_DIR}/main" \
+            -race \
+            -v \
+            ./...
+
+      - name: Merge coverage profiles
+        run: |
+          (cd "$GOPATH" && go get github.com/wadey/gocovmerge)
+          rm -rf "$GOPATH/src/github.com/wadey"
+          gocovmerge $(find "$COVERAGE_DIR" -type f) > coverage.out
+
+      - name: Show per-function coverage profile
+        run: go tool cover -func=coverage.out
+
+      - name: Convert coverage profile to lcov format
+        uses: jandelgado/gcov2lcov-action@v1.0.2
+        with:
+          infile: coverage.out
+          outfile: coverage.lcov
+
+      - name: Report to Coveralls
+        uses: coverallsapp/github-action@v1.1.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.lcov
+
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run Prettier
+        uses: creyD/prettier_action@v2.2
+        with:
+          dry: true
+          prettier_options: --check .
