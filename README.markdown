@@ -1,5 +1,30 @@
 # testgroup
 
+[![PkgGoDev][pkg-go-dev-badge]][pkg-go-dev-page]
+[![Workflow:Main][workflow-main-badge]][workflow-main-page]
+[![Coverage][coveralls-main-badge]][coveralls-main-page]
+[![Go Report Card][go-report-card-badge]][go-report-card-page]
+
+[coveralls-main-badge]:
+  https://coveralls.io/repos/github/bloomberg/go-testgroup/badge.svg?branch=main
+[coveralls-main-page]:
+  https://coveralls.io/github/bloomberg/go-testgroup?branch=main
+  "Coverage for main branch on Coveralls"
+[go-report-card-badge]:
+  https://goreportcard.com/badge/github.com/bloomberg/go-testgroup
+[go-report-card-page]:
+  https://goreportcard.com/report/github.com/bloomberg/go-testgroup
+  "Go Report Card"
+[pkg-go-dev-badge]: https://pkg.go.dev/badge/github.com/bloomberg/go-testgroup
+[pkg-go-dev-page]:
+  https://pkg.go.dev/github.com/bloomberg/go-testgroup
+  "Reference Documentation on pkg.go.dev"
+[workflow-main-badge]:
+  https://github.com/bloomberg/go-testgroup/workflows/Main/badge.svg
+[workflow-main-page]:
+  https://github.com/bloomberg/go-testgroup/actions?query=workflow%3AMain
+  "Main Github Workflow"
+
 `testgroup` helps you organize tests into groups. A test group is a `struct` (or
 other type) whose exported methods are its subtests. The subtests can share
 data, helper functions, and pre/post-group and pre/post-test hooks.
