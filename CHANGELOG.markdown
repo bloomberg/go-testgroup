@@ -10,6 +10,14 @@ The format is based on [Keep a Changelog][], and this project adheres to
 
 ## Unreleased ([diff][diff-unreleased])
 
+## [0.3.0][] ([diff][diff-0.3.0]) - 2020-07-23
+
+Our first open source release! :tada:
+
+### Added
+
+- Improved the documentation in the README and godoc comments.
+
 ### Changed
 
 - The test group will now fail if the group object has an exported method that
@@ -47,14 +55,20 @@ The format is based on [Keep a Changelog][], and this project adheres to
 First release of the library.
 
 [diff-unreleased]:
-  https://github.com/bloomberg/go-testgroup/compare/v0.2.0...HEAD
-  "unreleased changes since 0.2.0"
+  https://github.com/bloomberg/go-testgroup/compare/v0.3.0...HEAD
+  "unreleased changes since 0.3.0"
+[diff-0.3.0]:
+  https://github.com/bloomberg/go-testgroup/compare/v0.2.0...v0.3.0
+  "changes from 0.2.0 to 0.3.0"
 [diff-0.2.0]:
   https://github.com/bloomberg/go-testgroup/compare/v0.1.0...v0.2.0
   "changes from 0.1.0 to 0.2.0"
 [diff-0.1.0]:
   https://github.com/bloomberg/go-testgroup/commits/v0.1.0
   "changes from root to 0.1.0"
+[0.3.0]:
+  https://github.com/bloomberg/go-testgroup/releases/tag/v0.3.0
+  "version 0.3.0"
 [0.2.0]:
   https://github.com/bloomberg/go-testgroup/releases/tag/v0.2.0
   "version 0.2.0"
