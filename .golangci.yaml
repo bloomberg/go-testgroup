@@ -7,7 +7,18 @@ linters:
     - style
     - unused
   disable:
-    - wsl
+    - deadcode # deprecated since v1.49.0
+    - exhaustivestruct # deprecated since v1.46.0
+    - golint # deprecated since v1.41.0
+    - ifshort # deprecated since v1.48.0
+    - interfacer # deprecated since v1.38.0
+    - maligned # deprecated since v1.38.0
+    - nosnakecase # deprecated since v1.48.1
+    - paralleltest # because testgroup manages its own parallelism
+    - scopelint # deprecated since v1.39.0
+    - structcheck # deprecated since v1.49.0
+    - varcheck # deprecated since v1.49.0
+    - wsl # because it's too strict
 
 linters-settings:
   gocyclo:
