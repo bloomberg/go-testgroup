@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -32,8 +33,8 @@ import (
 //------------------------------------------------------------------------------
 
 func Test_Serial(t *testing.T) {
-	s := Serial{calls: []string{}}
-	testgroup.RunSerially(t, &s)
+	tests := Serial{calls: []string{}}
+	testgroup.RunSerially(t, &tests)
 
 	callName := func(c string) string {
 		return fmt.Sprintf("%s/%s", t.Name(), c)
@@ -56,7 +57,7 @@ func Test_Serial(t *testing.T) {
 			callName("Skip PostTest"),
 			fmt.Sprintf("%s PostGroup", t.Name()),
 		},
-		s.calls)
+		tests.calls)
 }
 
 type Serial struct {
@@ -68,7 +69,7 @@ func (s *Serial) called(t *testgroup.T, name string) {
 	s.calls = append(s.calls, name)
 }
 
-// nolint:unused // This function being unused is itself a test.
+//nolint:unused // This function being unused is itself a test.
 func (s *Serial) ignoredNonExported(t *testgroup.T) { t.FailNow("should not happen") }
 
 func (s *Serial) PreGroup(t *testgroup.T)  { s.called(t, fmt.Sprintf("%s PreGroup", t.Name())) }
@@ -89,29 +90,31 @@ func (s *Serial) Skip(t *testgroup.T) { t.SkipNow() }
 //------------------------------------------------------------------------------
 
 func Test_Parallel(t *testing.T) {
-	s := Parallel{calls: []string{}}
-	testgroup.RunInParallel(t, &s)
+	tests := Parallel{calls: []string{}, mutex: sync.Mutex{}}
+	testgroup.RunInParallel(t, &tests)
 
-	for i, call := range s.calls {
-		t.Logf("s.calls[%2d]: = %v", i, call)
+	for i, call := range tests.calls {
+		t.Logf("tests.calls[%2d]: = %v", i, call)
 	}
 
-	assert.Len(t, s.calls, 13)
-	assert.Equal(t, fmt.Sprintf("%s PreGroup", t.Name()), s.calls[0])
-	assert.Equal(t, fmt.Sprintf("%s PostGroup", t.Name()), s.calls[len(s.calls)-1])
+	assert.Len(t, tests.calls, 13)
+	assert.Equal(t, fmt.Sprintf("%s PreGroup", t.Name()), tests.calls[0])
+	assert.Equal(t, fmt.Sprintf("%s PostGroup", t.Name()), tests.calls[len(tests.calls)-1])
 
 	for _, name := range []string{"A", "B", "C", "Skip"} {
-		validateCallOrderForFunc(t, &s, name)
+		validateCallOrderForFunc(t, &tests, name)
 	}
 }
 
-func validateCallOrderForFunc(t *testing.T, s *Parallel, funcName string) {
+func validateCallOrderForFunc(t *testing.T, tests *Parallel, funcName string) {
+	t.Helper()
+
 	prefix := fmt.Sprintf("%s/%s/%s", t.Name(), testgroup.RunInParallelParentTestName, funcName)
 	pre := false
 	test := false
 	post := false
 
-	for _, call := range s.calls[1 : len(s.calls)-1] {
+	for _, call := range tests.calls[1 : len(tests.calls)-1] {
 		if strings.HasPrefix(call, prefix) {
 			switch {
 			case strings.HasSuffix(call, "PreTest"):
@@ -213,13 +216,13 @@ func (sg *Subgroup) AddOne(t *testgroup.T) { atomic.AddInt32(&sg.Count, 1) }
 func (sg *Subgroup) AddTwo(t *testgroup.T) { atomic.AddInt32(&sg.Count, 2) }
 
 func (g *ThingsYouCanDoWithT) RunSubgroupInSerial(t *testgroup.T) {
-	sg := Subgroup{}
+	sg := Subgroup{Count: 0}
 	t.RunSerially(&sg)
 	t.Equal(int32(3), sg.Count)
 }
 
 func (g *ThingsYouCanDoWithT) RunSubgroupInParallel(t *testgroup.T) {
-	sg := Subgroup{}
+	sg := Subgroup{Count: 0}
 	t.RunInParallel(&sg)
 	t.Equal(int32(3), sg.Count)
 }
@@ -269,16 +272,18 @@ func findErrorTests() ([]string, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error scanning for error tests: %w", err)
 	}
 
 	return tests, nil
 }
 
 func runTestExpectingFailure(t *testing.T, testName string) {
+	t.Helper()
+
 	ctx := context.Background()
 
-	// nolint:gosec // no risk using the testName param
+	//nolint:gosec // no risk using the testName param
 	cmd := exec.CommandContext(ctx,
 		"go", "test",
 		"-tags", "testgroup_errors",
@@ -294,7 +299,8 @@ func runTestExpectingFailure(t *testing.T, testName string) {
 	t.Logf("cmd.Args: %v", cmd.Args)
 
 	out, err := cmd.CombinedOutput()
-	if err != nil && err.(*exec.ExitError).ExitCode() == 1 {
+	var exitErr *exec.ExitError
+	if err != nil && errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
 		// It failed, as expected.
 		return
 	}

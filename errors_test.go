@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build testgroup_errors
 // +build testgroup_errors
 
 package testgroup_test

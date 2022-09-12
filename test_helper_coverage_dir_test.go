@@ -37,7 +37,7 @@ func goTestCoverageArgs(testName string) []string {
 		panic(err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
 		panic(fmt.Sprintf("could not mkdir %q: %v", filepath.Dir(absPath), err))
 	}
 
