@@ -10,6 +10,19 @@ The format is based on [Keep a Changelog][], and this project adheres to
 
 ## Unreleased ([diff][diff-unreleased])
 
+## [0.3.1][] ([diff][diff-0.3.1]) - 2022-10-20
+
+### Fixed
+
+- Made changes (mostly cosmetic) based on linter feedback ([#8][pr-8]).
+
+### Security
+
+- Updated the minimum required version of `github.com/stretchr/testify` to
+  `v1.6.0` to remove the indirect dependency on `gopkg.in/yaml.v2`, which has
+  [multiple vulnerabilities](https://pkg.go.dev/gopkg.in/yaml.v2?tab=versions)
+  ([#7][pr-7]).
+
 ## [0.3.0][] ([diff][diff-0.3.0]) - 2020-07-23
 
 Our first open source release! :tada:
@@ -54,9 +67,14 @@ Our first open source release! :tada:
 
 First release of the library.
 
+[pr-7]: https://github.com/bloomberg/go-testgroup/pull/7
+[pr-8]: https://github.com/bloomberg/go-testgroup/pull/8
 [diff-unreleased]:
-  https://github.com/bloomberg/go-testgroup/compare/v0.3.0...HEAD
-  "unreleased changes since 0.3.0"
+  https://github.com/bloomberg/go-testgroup/compare/v0.3.1...HEAD
+  "unreleased changes since 0.3.1"
+[diff-0.3.1]:
+  https://github.com/bloomberg/go-testgroup/compare/v0.3.0...v0.3.1
+  "changes from 0.3.0 to 0.3.1"
 [diff-0.3.0]:
   https://github.com/bloomberg/go-testgroup/compare/v0.2.0...v0.3.0
   "changes from 0.2.0 to 0.3.0"
@@ -66,6 +84,9 @@ First release of the library.
 [diff-0.1.0]:
   https://github.com/bloomberg/go-testgroup/commits/v0.1.0
   "changes from root to 0.1.0"
+[0.3.1]:
+  https://github.com/bloomberg/go-testgroup/releases/tag/v0.3.1
+  "version 0.3.1"
 [0.3.0]:
   https://github.com/bloomberg/go-testgroup/releases/tag/v0.3.0
   "version 0.3.0"
