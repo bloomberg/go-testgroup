@@ -14,13 +14,13 @@ jobs:
     env:
       COVERAGE_DIR: COVERAGE
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Set up Go 1.x
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.x
-
-      - name: Checkout code
-        uses: actions/checkout@v2
 
       - name: Run tests
         run: |
@@ -33,21 +33,20 @@ jobs:
 
       - name: Merge coverage profiles
         run: |
-          (cd "$GOPATH" && go get github.com/wadey/gocovmerge)
-          rm -rf "$GOPATH/src/github.com/wadey"
+          go install github.com/wadey/gocovmerge@latest
           gocovmerge $(find "$COVERAGE_DIR" -type f) > coverage.out
 
       - name: Show per-function coverage profile
         run: go tool cover -func=coverage.out
 
       - name: Convert coverage profile to lcov format
-        uses: jandelgado/gcov2lcov-action@v1.0.2
+        uses: jandelgado/gcov2lcov-action@v1.0.9
         with:
           infile: coverage.out
           outfile: coverage.lcov
 
       - name: Report to Coveralls
-        uses: coverallsapp/github-action@v1.1.1
+        uses: coverallsapp/github-action@1.1.3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: coverage.lcov
@@ -57,22 +56,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.x
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.29
+          version: v1.49
 
   prettier:
     name: Prettier
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Run Prettier
-        uses: creyD/prettier_action@v2.2
+        uses: creyD/prettier_action@v4.2
         with:
           dry: true
           prettier_options: --check .

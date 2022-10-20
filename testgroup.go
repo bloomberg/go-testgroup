@@ -44,21 +44,21 @@ type T struct {
 // For example, given a function TestParallel that calls RunInParallel on a test group struct with
 // two subtests A and B, the test output might look like this:
 //
-//     $ go test -v
-//     === RUN   TestParallel
-//     === RUN   TestParallel/_
-//     === RUN   TestParallel/_/A
-//     === PAUSE TestParallel/_/A
-//     === RUN   TestParallel/_/B
-//     === PAUSE TestParallel/_/B
-//     === CONT  TestParallel/_/A
-//     === CONT  TestParallel/_/B
-//     --- PASS: TestParallel (0.00s)
-//         --- PASS: TestParallel/_ (0.00s)
-//             --- PASS: TestParallel/_/A (0.00s)
-//             --- PASS: TestParallel/_/B (0.00s)
-//     PASS
-//     ok  	example	0.013s
+//	$ go test -v
+//	=== RUN   TestParallel
+//	=== RUN   TestParallel/_
+//	=== RUN   TestParallel/_/A
+//	=== PAUSE TestParallel/_/A
+//	=== RUN   TestParallel/_/B
+//	=== PAUSE TestParallel/_/B
+//	=== CONT  TestParallel/_/A
+//	=== CONT  TestParallel/_/B
+//	--- PASS: TestParallel (0.00s)
+//	    --- PASS: TestParallel/_ (0.00s)
+//	        --- PASS: TestParallel/_/A (0.00s)
+//	        --- PASS: TestParallel/_/B (0.00s)
+//	PASS
+//	ok  	example	0.013s
 //
 // You can change the value of RunInParallelParentTestName to replace "_" above with another string.
 var RunInParallelParentTestName = "_"
@@ -77,7 +77,7 @@ func RunInParallel(t *testing.T, group interface{}) {
 }
 
 // Run is just like testing.T.Run, but the argument to f is a *testgroup.T instead of a *testing.T.
-func (t *T) Run(name string, f func(t *T)) {
+func (t *T) Run(name string, testFunc func(t *T)) {
 	t.T.Helper()
 	t.T.Run(name, func(t *testing.T) {
 		funcT := &T{
@@ -86,7 +86,7 @@ func (t *T) Run(name string, f func(t *T)) {
 			Require:    require.New(t),
 		}
 
-		f(funcT)
+		testFunc(funcT)
 	})
 }
 
@@ -235,12 +235,14 @@ func findTestMethods(t *testing.T, group interface{}) []testMethod {
 }
 
 func requireGroupAndGroupPtrMethodsToMatch(t *testing.T, groupType reflect.Type) {
+	t.Helper()
+
 	if groupType.Kind() == reflect.Ptr {
 		return
 	}
 
 	ptrType := reflect.PtrTo(groupType)
-	if ptrType != nil && ptrType.NumMethod() != groupType.NumMethod() {
+	if ptrType.NumMethod() != groupType.NumMethod() {
 		t.Fatalf(
 			"testgroup: mixed method receivers: %v has %v methods, but %v has %v methods."+
 				" You should either pass a pointer or make the extra methods private.",
