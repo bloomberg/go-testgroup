@@ -10,6 +10,12 @@ The format is based on [Keep a Changelog][], and this project adheres to
 
 ## Unreleased ([diff][diff-unreleased])
 
+## [1.0.0][] ([diff][diff-1.0.0]) - 2023-09-11
+
+There have been no significant changes to `testgroup`'s behavior since
+[v0.3.0][0.3.0] almost three years ago. I think we're ready to tag version
+1.0.0. :tada:
+
 ## [0.3.1][] ([diff][diff-0.3.1]) - 2022-10-20
 
 ### Fixed
@@ -70,8 +76,11 @@ First release of the library.
 [pr-7]: https://github.com/bloomberg/go-testgroup/pull/7
 [pr-8]: https://github.com/bloomberg/go-testgroup/pull/8
 [diff-unreleased]:
-  https://github.com/bloomberg/go-testgroup/compare/v0.3.1...HEAD
-  "unreleased changes since 0.3.1"
+  https://github.com/bloomberg/go-testgroup/compare/v1.0.0...HEAD
+  "unreleased changes since 1.0.0"
+[diff-1.0.0]:
+  https://github.com/bloomberg/go-testgroup/compare/v0.3.1...v1.0.0
+  "changes from 0.3.1 to 1.0.0"
 [diff-0.3.1]:
   https://github.com/bloomberg/go-testgroup/compare/v0.3.0...v0.3.1
   "changes from 0.3.0 to 0.3.1"
@@ -84,6 +93,9 @@ First release of the library.
 [diff-0.1.0]:
   https://github.com/bloomberg/go-testgroup/commits/v0.1.0
   "changes from root to 0.1.0"
+[1.0.0]:
+  https://github.com/bloomberg/go-testgroup/releases/tag/v1.0.0
+  "version 1.0.0"
 [0.3.1]:
   https://github.com/bloomberg/go-testgroup/releases/tag/v0.3.1
   "version 0.3.1"
