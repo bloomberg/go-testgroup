@@ -212,8 +212,8 @@ type Subgroup struct {
 	Count int32
 }
 
-func (sg *Subgroup) AddOne(t *testgroup.T) { atomic.AddInt32(&sg.Count, 1) }
-func (sg *Subgroup) AddTwo(t *testgroup.T) { atomic.AddInt32(&sg.Count, 2) }
+func (sg *Subgroup) AddOne(_ *testgroup.T) { atomic.AddInt32(&sg.Count, 1) }
+func (sg *Subgroup) AddTwo(_ *testgroup.T) { atomic.AddInt32(&sg.Count, 2) }
 
 func (g *ThingsYouCanDoWithT) RunSubgroupInSerial(t *testgroup.T) {
 	sg := Subgroup{Count: 0}
