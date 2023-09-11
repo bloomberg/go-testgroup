@@ -8,6 +8,7 @@ linters:
     - unused
   disable:
     - deadcode # deprecated since v1.49.0
+    - depguard # we should just be careful with go.mod diffs
     - exhaustivestruct # deprecated since v1.46.0
     - golint # deprecated since v1.41.0
     - ifshort # deprecated since v1.48.0
