@@ -10,6 +10,14 @@ The format is based on [Keep a Changelog][], and this project adheres to
 
 ## Unreleased ([diff][diff-unreleased])
 
+## [1.1.0][] ([diff][diff-1.1.0]) - 2023-09-12
+
+## Changed
+
+- Updated `go.mod` to `go 1.17` to enable more modern Go module features. See
+  the [Go Modules Reference](https://go.dev/ref/mod#go-mod-file-go) for details
+  ([#12][pr-12]).
+
 ## [1.0.0][] ([diff][diff-1.0.0]) - 2023-09-11
 
 There have been no significant changes to `testgroup`'s behavior since
@@ -75,9 +83,13 @@ First release of the library.
 
 [pr-7]: https://github.com/bloomberg/go-testgroup/pull/7
 [pr-8]: https://github.com/bloomberg/go-testgroup/pull/8
+[pr-12]: https://github.com/bloomberg/go-testgroup/pull/12
 [diff-unreleased]:
-  https://github.com/bloomberg/go-testgroup/compare/v1.0.0...HEAD
-  "unreleased changes since 1.0.0"
+  https://github.com/bloomberg/go-testgroup/compare/v1.1.0...HEAD
+  "unreleased changes since 1.1.0"
+[diff-1.1.0]:
+  https://github.com/bloomberg/go-testgroup/compare/v1.0.0...v1.1.0
+  "changes from 1.0.0 to 1.1.0"
 [diff-1.0.0]:
   https://github.com/bloomberg/go-testgroup/compare/v0.3.1...v1.0.0
   "changes from 0.3.1 to 1.0.0"
@@ -93,6 +105,9 @@ First release of the library.
 [diff-0.1.0]:
   https://github.com/bloomberg/go-testgroup/commits/v0.1.0
   "changes from root to 0.1.0"
+[1.1.0]:
+  https://github.com/bloomberg/go-testgroup/releases/tag/v1.1.0
+  "version 1.1.0"
 [1.0.0]:
   https://github.com/bloomberg/go-testgroup/releases/tag/v1.0.0
   "version 1.0.0"
