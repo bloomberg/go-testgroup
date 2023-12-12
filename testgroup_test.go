@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -202,7 +203,7 @@ func (g *ThingsYouCanDoWithT) RunSubtests(t *testgroup.T) {
 	positiveNumbers := []int{1, 3, 7, 42}
 	for _, n := range positiveNumbers {
 		num := n
-		t.Run(fmt.Sprintf("%d", num), func(t *testgroup.T) {
+		t.Run(strconv.Itoa(num), func(t *testgroup.T) {
 			t.Greater(num, 0)
 		})
 	}
